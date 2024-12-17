@@ -1,13 +1,33 @@
-import React from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity, FlatList, SafeAreaView, Alert} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
 import Colors from '@/constants/Colors';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/Ionicons';
 import GradientBackground from "@/components/GradientBackground";
 import { signOut } from '@/services/authService';
+import { getCurrentUser } from '@/services/userService';
 
+export default function ProfileScreen({ navigation }: { navigation: any }) {
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
-export default function ProfileScreen(navigation: { reset: (arg0: { index: number; routes: { name: string; }[]; }) => void; }) {
+    // Récupération des informations de l'utilisateur
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const { data, error } = await getCurrentUser();
+            if (error) {
+                console.error('Erreur lors de la récupération des informations utilisateur :', error.message);
+                Alert.alert('Erreur', 'Impossible de récupérer les informations de votre profil.');
+            } else {
+                setUser(data);
+            }
+            setLoading(false);
+        };
+
+        fetchUserData();
+    }, []);
+
+    // Déconnexion
     const handleSignOut = async () => {
         const { error } = await signOut();
         if (error) {
@@ -20,28 +40,38 @@ export default function ProfileScreen(navigation: { reset: (arg0: { index: numbe
         }
     };
 
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.secondary} />
+            </View>
+        );
+    }
+
     return (
         <GradientBackground startColor={Colors.primary} endColor={Colors.background} locations={[0, 0.4]}>
-        <SafeAreaView>
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.profilePictureContainer}>
-                    <Icon name="person-outline" size={70} color="#fff" />
+            <SafeAreaView>
+                {/* Header */}
+                <View style={styles.header}>
+                    <View style={styles.profilePictureContainer}>
+                        <Icon name="person-outline" size={70} color="#fff" />
+                    </View>
+                    <Text style={styles.name}>{user?.nom || 'Nom inconnu'}</Text>
+                    <Text style={styles.email}>{user?.email || 'Email inconnu'}</Text>
+                    <TouchableOpacity style={styles.settingsButton} onPress={handleSignOut}>
+                        <Icon name="settings-outline" size={24} color="#fff" />
+                    </TouchableOpacity>
                 </View>
-                <Text style={styles.name}>Célian Frasca</Text>
-                <Text style={styles.email}>celian.frasca@gmail.com</Text>
-                <TouchableOpacity style={styles.settingsButton} onPress={handleSignOut}>
-                    <Icon name="settings-outline" size={24} color="#fff" />
-                </TouchableOpacity>
-            </View>
-        </SafeAreaView>
+            </SafeAreaView>
         </GradientBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    loadingContainer: {
         flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: Colors.background,
     },
     header: {
@@ -62,95 +92,17 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 22,
         fontWeight: 'bold',
-        color: '#fff',
+        color: Colors.text,
+        marginTop: 10,
     },
     email: {
+        marginTop: 5,
         fontSize: 14,
-        color: '#c1d4f1',
+        color: Colors.textSecondary,
     },
     settingsButton: {
         position: 'absolute',
         top: 20,
         right: 20,
-    },
-    reservationContainer: {
-        flex: 1,
-        paddingHorizontal: 20,
-        marginTop: 10,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: Colors.text,
-        marginBottom: 10,
-    },
-    card: {
-        backgroundColor: Colors.card,
-        borderRadius: 10,
-        overflow: 'hidden',
-        marginBottom: 20,
-    },
-    image: {
-        height: 150,
-        width: '100%',
-    },
-    cardContent: {
-        padding: 10,
-    },
-    price: {
-        position: 'absolute',
-        top: 10,
-        left: 10,
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        color: '#fff',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 5,
-        fontSize: 12,
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
-        color: Colors.text,
-    },
-    location: {
-        fontSize: 14,
-        color: Colors.textSecondary,
-        marginBottom: 10,
-    },
-    button: {
-        backgroundColor: '#4daaf7',
-        paddingVertical: 8,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        paddingVertical: 10,
-        backgroundColor: Colors.card,
-        borderTopLeftRadius: 15,
-        borderTopRightRadius: 15,
-        elevation: 5,
-    },
-    footerButton: {
-        alignItems: 'center',
-    },
-    footerButtonActive: {
-        alignItems: 'center',
-    },
-    footerText: {
-        fontSize: 12,
-        color: Colors.textSecondary,
-    },
-    footerTextActive: {
-        fontSize: 12,
-        color: Colors.secondary,
-        fontWeight: 'bold',
     },
 });
