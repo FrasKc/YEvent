@@ -4,27 +4,35 @@ import MapView, { Marker, MapType } from 'react-native-maps';
 import Colors from '@/constants/Colors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getCurrentLocation, startLocationUpdates } from '@/services/locationService';
+import { fetchEvents } from '@/services/eventService';
+import { Event } from '@/models/event';
 
 export default function MapsScreen() {
     const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [mapType, setMapType] = useState<MapType>('standard'); // État pour le type de carte
+    const [events, setEvents] = useState<Event[]>([]); // État pour les événements
+
     const mapRef = useRef<MapView>(null);
 
-    // Récupérer la localisation initiale
-    const fetchLocation = async () => {
+    // Récupérer la localisation et les événements
+    const fetchData = async () => {
         setLoading(true);
         try {
+            // Récupération des coordonnées actuelles
             const currentLocation = await getCurrentLocation();
             setLocation(currentLocation);
+
+            // Fetch des événements avec coordonnées
+            const fetchedEvents = await fetchEvents();
+            setEvents(fetchedEvents);
         } catch (error) {
-            Alert.alert('Erreur', 'Impossible de récupérer votre position.');
+            Alert.alert('Erreur', 'Impossible de récupérer les données.');
         } finally {
             setLoading(false);
         }
     };
 
-    // Recentre et regéolocalise l'utilisateur
     const recenterMap = async () => {
         try {
             const currentLocation = await getCurrentLocation();
@@ -41,7 +49,6 @@ export default function MapsScreen() {
     };
 
     const toggleMapType = () => {
-        // Alterne entre les types de carte
         const types: MapType[] = ['standard', 'satellite', 'hybrid'];
         const currentIndex = types.indexOf(mapType);
         const nextType = types[(currentIndex + 1) % types.length];
@@ -49,12 +56,8 @@ export default function MapsScreen() {
     };
 
     useEffect(() => {
-        fetchLocation();
-
-        // Démarre la mise à jour régulière
-        startLocationUpdates((newLocation) => {
-            setLocation(newLocation);
-        });
+        fetchData();
+        startLocationUpdates((newLocation) => setLocation(newLocation));
     }, []);
 
     return (
@@ -66,7 +69,7 @@ export default function MapsScreen() {
                     <MapView
                         ref={mapRef}
                         style={styles.map}
-                        mapType={mapType} // Type de carte
+                        mapType={mapType}
                         region={{
                             latitude: location?.latitude || 0,
                             longitude: location?.longitude || 0,
@@ -75,6 +78,18 @@ export default function MapsScreen() {
                         }}
                         showsUserLocation={true}
                     >
+                        {/* Affichage des marqueurs pour les événements */}
+                        {events.map((event) => (
+                            <Marker
+                                key={event.id}
+                                coordinate={{
+                                    latitude: event.coordonnees.latitude,
+                                    longitude: event.coordonnees.longitude,
+                                }}
+                                title={event.titre}
+                                description={event.lieu}
+                            />
+                        ))}
                     </MapView>
 
                     {/* Bouton pour recentrer */}
@@ -110,10 +125,6 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         padding: 12,
         elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
     },
     mapTypeButton: {
         position: 'absolute',
