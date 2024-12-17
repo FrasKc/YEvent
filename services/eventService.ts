@@ -1,5 +1,5 @@
-import { supabase } from '@/app/utils/supabase';
-import { Event } from '@/app/models/event';
+import { supabase } from '@/utils/supabase';
+import { Event } from '@/models/event';
 
 export const fetchEvents = async (): Promise<Event[]> => {
     const { data, error } = await supabase
@@ -13,3 +13,5 @@ export const fetchEvents = async (): Promise<Event[]> => {
 
     return data as Event[];
 };
+
+export default { fetchEvents };

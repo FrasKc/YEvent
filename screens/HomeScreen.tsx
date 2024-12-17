@@ -3,8 +3,8 @@ import { View, StyleSheet, FlatList, SafeAreaView, ActivityIndicator, Text } fro
 import SearchBar from '@/components/SearchBar';
 import EventCard from '@/components/EventCard';
 import Colors from '@/constants/Colors';
-import { fetchEvents } from '@/app/services/eventService'; // Import du service
-import { Event } from '@/app/models/event';
+import { fetchEvents } from '@/services/eventService'; // Import du service
+import { Event } from '@/models/event';
 
 export default function HomeScreen() {
     const [events, setEvents] = useState<Event[]>([]); // État pour stocker les événements
