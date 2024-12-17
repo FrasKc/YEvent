@@ -141,7 +141,7 @@ export default function HomeScreen({ navigation }: any) {
                         renderItem={({ item }) => (
                             <EventCard
                                 image={'https://via.placeholder.com/400x200'}
-                                price={`${item.capacite}€`}
+                                price={item.prix ? `${item.prix}€` : 'Gratuit'}
                                 title={item.titre}
                                 date={formatDate(item.date)}
                                 places={item.places_restantes}

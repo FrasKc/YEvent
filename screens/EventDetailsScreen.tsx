@@ -115,11 +115,19 @@ export default function EventDetailsScreen({ route, navigation }: any) {
                             </View>
                         </View>
 
-                        {/* Places restantes */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Places restantes</Text>
-                            <Text style={styles.placesValue}>{event.places_restantes} places restantes</Text>
+                        <View style={styles.detailsContainer}>
+                            <View style={styles.detailBox}>
+                                <Text style={styles.sectionTitle}>Places restantes</Text>
+                                <Text style={styles.placesValue}>{event.places_restantes} places restantes</Text>
+                            </View>
+                            <View style={styles.detailBox}>
+                                <Text style={styles.sectionTitle}>Prix total</Text>
+                                <Text style={styles.placesValue}>{event.prix ? event.prix*selectedSeats+'€' : '0,00€'}</Text>
+                            </View>
                         </View>
+
+                        {/* Places restantes */}
+
 
                         <View style={styles.footer}>
                             {/* SeatSelector */}
@@ -182,7 +190,7 @@ const styles = StyleSheet.create({
     section: { marginTop: 20 },
     sectionTitle: { fontSize: 16, fontWeight: 'bold', color: Colors.text },
     description: { fontSize: 13, color: Colors.textSecondary, marginTop: 5, marginBottom: 10 },
-    detailsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+    detailsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, marginBottom: 20 },
     detailBox: { alignItems: 'flex-start', flex: 1 },
     placesValue: { fontSize: 13, color: Colors.secondary },
     footer: {

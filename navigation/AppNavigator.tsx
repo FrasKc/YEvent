@@ -6,7 +6,6 @@ import CustomTabBar from '@/components/CustomTapBar';
 // Import des écrans
 import HomeScreen from '@/screens/HomeScreen';
 import EventDetailsScreen from '@/screens/EventDetailsScreen';
-import BookingScreen from '@/screens/BookingScreen';
 import ConfirmationScreen from '@/screens/ConfirmationScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
 import MapsScreen from '@/screens/MapScreen';
@@ -44,11 +43,6 @@ export default function AppNavigator() {
             <Stack.Screen
                 name="EventDetails"
                 component={EventDetailsScreen}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="Booking"
-                component={BookingScreen}
                 options={{ headerShown: false }}
             />
             <Stack.Screen
