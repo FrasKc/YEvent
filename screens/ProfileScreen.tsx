@@ -6,10 +6,12 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import GradientBackground from "@/components/GradientBackground";
 import { signOut } from '@/services/authService';
 import { getCurrentUser } from '@/services/userService';
+import ConfirmationMessage from '@/components/ConfirmationMessage';
 
 export default function ProfileScreen({ navigation }: { navigation: any }) {
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [showConfirmLogout, setShowConfirmLogout] = useState<boolean>(false);
 
     // Récupération des informations de l'utilisateur
     useEffect(() => {
@@ -58,11 +60,25 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
                     </View>
                     <Text style={styles.name}>{user?.nom || 'Nom inconnu'}</Text>
                     <Text style={styles.email}>{user?.email || 'Email inconnu'}</Text>
-                    <TouchableOpacity style={styles.settingsButton} onPress={handleSignOut}>
-                        <Icon name="settings-outline" size={24} color="#fff" />
+                    <TouchableOpacity
+                        style={styles.settingsButton}
+                        onPress={() => setShowConfirmLogout(true)} // Affiche le message de confirmation
+                    >
+                        <Icon name="log-out-outline" size={24} color="#fff" />
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
+
+            {/* Modal de confirmation */}
+            <ConfirmationMessage
+                visible={showConfirmLogout}
+                title="Déconnexion"
+                message="Êtes-vous sûr de vouloir vous déconnecter ?"
+                onConfirm={handleSignOut}
+                onCancel={() => setShowConfirmLogout(false)}
+                confirmText="Déconnexion"
+                cancelText="Annuler"
+            />
         </GradientBackground>
     );
 }
@@ -97,7 +113,7 @@ const styles = StyleSheet.create({
     },
     email: {
         marginTop: 5,
-        fontSize: 14,
+        fontSize: 16,
         color: Colors.textSecondary,
     },
     settingsButton: {
