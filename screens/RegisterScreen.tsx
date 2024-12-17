@@ -17,6 +17,7 @@ import GradientBackground from '@/components/GradientBackground';
 import Colors from '@/constants/Colors';
 import { signUpWithEmail } from '@/services/authService';
 
+// @ts-ignore
 export default function RegisterScreen({ navigation }) {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');

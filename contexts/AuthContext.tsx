@@ -14,20 +14,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        // Vérifie si un utilisateur est connecté au démarrage
         const checkUser = async () => {
-            const { data } = await supabase.auth.getUser();
-            setUser(data.user);
+            setLoading(true);
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error) {
+                console.error('Erreur lors de la récupération de la session :', error.message);
+            }
+
+            if (session?.user) {
+                setUser(session.user);
+                console.log('Session utilisateur trouvée :', session.user);
+            } else {
+                setUser(null);
+                console.log('Aucune session utilisateur active.');
+            }
+
             setLoading(false);
         };
 
-        // Écoute les changements d'authentification
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
             setUser(session?.user || null);
+            console.log('État auth modifié, session :', session);
             setLoading(false);
         });
 
-        checkUser().then(r => console.log('The user is:', user));
+        checkUser();
 
         return () => {
             authListener.subscription.unsubscribe();
