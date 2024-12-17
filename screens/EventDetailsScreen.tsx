@@ -12,17 +12,21 @@ import {
 } from 'react-native';
 import Colors from '@/constants/Colors';
 import { getEventById } from '@/services/eventService';
+import { createReservation } from '@/services/reservationService';
 import GradientBackground from '@/components/GradientBackground';
 import CustomButton from '@/components/CustomButton';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/Ionicons';
 import SeatSelector from "@/components/SeatSelector";
+import ConfirmationMessage from '@/components/ConfirmationMessage';
+import { formatDate } from "@/utils/dateUtils";
 
 export default function EventDetailsScreen({ route, navigation }: any) {
     const { eventId } = route.params;
     const [event, setEvent] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedSeats, setSelectedSeats] = useState<number>(1); // État pour les places sélectionnées
+    const [showConfirmReservation, setShowConfirmReservation] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchEventDetails = async () => {
@@ -37,6 +41,29 @@ export default function EventDetailsScreen({ route, navigation }: any) {
 
         fetchEventDetails();
     }, [eventId]);
+
+    const handleReservation = async () => {
+        setShowConfirmReservation(false); // Ferme la boîte de confirmation
+        try {
+            const { error } = await createReservation(eventId, selectedSeats);
+
+            if (error) {
+                console.error('Erreur lors de la réservation :', error.message);
+                Alert.alert('Erreur', 'Impossible d’effectuer la réservation. Veuillez réessayer.');
+            } else {
+                // Met à jour les places restantes localement
+                setEvent((prev: any) => ({
+                    ...prev,
+                    places_restantes: prev.places_restantes - selectedSeats,
+                }));
+
+                Alert.alert('Réservation réussie', `Vous avez réservé ${selectedSeats} places pour cet événement.`);
+            }
+        } catch (err) {
+            console.error('Erreur inattendue :', err);
+            Alert.alert('Erreur', 'Une erreur inattendue est survenue.');
+        }
+    };
 
     if (loading) {
         return (
@@ -80,7 +107,7 @@ export default function EventDetailsScreen({ route, navigation }: any) {
                         <View style={styles.detailsContainer}>
                             <View style={styles.detailBox}>
                                 <Text style={styles.sectionTitle}>Date</Text>
-                                <Text style={styles.placesValue}>{event.date}</Text>
+                                <Text style={styles.placesValue}>{formatDate(event.date)}</Text>
                             </View>
                             <View style={styles.detailBox}>
                                 <Text style={styles.sectionTitle}>Capacité</Text>
@@ -104,27 +131,32 @@ export default function EventDetailsScreen({ route, navigation }: any) {
                             {/* Bouton Réserver */}
                             <TouchableOpacity
                                 style={[styles.button, { backgroundColor: Colors.secondary }]}
-                                onPress={() => Alert.alert('Réservation', `Vous avez réservé ${selectedSeats} places.`)}
+                                onPress={() => setShowConfirmReservation(true)}
                             >
                                 <Text style={styles.buttonText}>Réserver</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </ScrollView>
+
+                {/* ConfirmationDialog */}
+                <ConfirmationMessage
+                    visible={showConfirmReservation}
+                    title="Confirmation de réservation"
+                    message={`Voulez-vous réserver ${selectedSeats} place(s) pour cet événement ?`}
+                    onConfirm={handleReservation}
+                    onCancel={() => setShowConfirmReservation(false)}
+                    confirmText="Confirmer"
+                    cancelText="Annuler"
+                />
             </SafeAreaView>
         </GradientBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+    container: { flex: 1 },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     appBar: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -132,121 +164,42 @@ const styles = StyleSheet.create({
         height: 60,
         elevation: 5,
     },
-    backButton: {
-        position: 'absolute',
-        left: 20,
-        zIndex: 1,
-    },
-    appBarTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    cardContainer: {
-        padding: 20,
-        alignItems: 'center',
-    },
+    backButton: { position: 'absolute', left: 20, zIndex: 1 },
+    appBarTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
+    cardContainer: { padding: 20, alignItems: 'center' },
     card: {
         backgroundColor: Colors.card,
         borderRadius: 10,
         padding: 15,
         elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
         width: '100%',
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    image: {
-        width: 100,
-        height: 100,
-        borderRadius: 10,
-    },
-    titleContainer: {
-        marginLeft: 15,
-        flex: 1,
-    },
-    title: {
-        fontSize: 17,
-        fontWeight: 'bold',
-        color: Colors.text,
-    },
-    location: {
-        fontSize: 13,
-        color: Colors.textSecondary,
-    },
-    section: {
-        marginTop: 20,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: Colors.text,
-    },
-    description: {
-        fontSize: 13,
-        color: Colors.textSecondary,
-        lineHeight: 20,
-        marginTop: 5,
-        marginBottom: 10,
-    },
-    detailsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-    },
-    detailBox: {
-        alignItems: 'flex-start',
-        flex: 1,
-    },
-    detailTitle: {
-        fontSize: 14,
-        color: Colors.textSecondary,
-    },
-    detailValue: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: Colors.text,
-    },
-    placesTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: Colors.text,
-        marginTop: 10,
-    },
-    placesValue: {
-        fontSize: 13,
-        color: Colors.secondary,
-        marginTop: 10,
-    },
+    header: { flexDirection: 'row', alignItems: 'center' },
+    image: { width: 100, height: 100, borderRadius: 10 },
+    titleContainer: { marginLeft: 15, flex: 1 },
+    title: { fontSize: 17, fontWeight: 'bold', color: Colors.text },
+    location: { fontSize: 13, color: Colors.textSecondary },
+    section: { marginTop: 20 },
+    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: Colors.text },
+    description: { fontSize: 13, color: Colors.textSecondary, marginTop: 5, marginBottom: 10 },
+    detailsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+    detailBox: { alignItems: 'flex-start', flex: 1 },
+    placesValue: { fontSize: 13, color: Colors.secondary },
     footer: {
         marginTop: 20,
-        flexDirection: 'row', // Met les enfants en ligne
-        alignItems: 'center', // Aligne verticalement
-        justifyContent: 'space-between', // Répartition équilibrée
-        gap: 10, // Ajoute un espacement entre les enfants (React Native >= 0.71)
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 10,
     },
     button: {
-        flex: 1, // Prend tout l'espace restant
-        marginTop: 0, // Enlève le marginTop ici si présent
+        flex: 1,
         borderRadius: 8,
         paddingVertical: 10,
         paddingHorizontal: 10,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    buttonText: {
-        color: '#fff',
-        fontWeight: '600',
-        fontSize: 15,
-    },
-    separator: {
-        height: 1,
-        backgroundColor: Colors.variant, // Utilisation de la couleur de bordure
-        marginVertical: 15, // Espacement au-dessus et en dessous du trait
-    },
+    buttonText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+    separator: { height: 1, backgroundColor: Colors.variant, marginVertical: 15 },
 });

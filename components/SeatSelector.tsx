@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import Colors from '@/constants/Colors';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -7,7 +7,7 @@ import { Picker } from '@react-native-picker/picker';
 
 interface SeatSelectorProps {
     onValueChange: (value: number) => void;
-    maxSeats: number;
+    maxSeats: number; // Nombre maximum de places disponibles
 }
 
 export default function SeatSelector({ onValueChange, maxSeats }: SeatSelectorProps) {
@@ -63,7 +63,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         paddingHorizontal: 12,
         paddingVertical: 8,
-        width: 60,
+        width: 80,
+        minWidth: 60,
         alignItems: 'center',
         justifyContent: 'center',
     },
