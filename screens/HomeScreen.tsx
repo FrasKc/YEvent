@@ -5,90 +5,155 @@ import {
     FlatList,
     ActivityIndicator,
     Text,
-    Keyboard,
-    TouchableWithoutFeedback,
     SafeAreaView,
+    TouchableOpacity,
 } from 'react-native';
 import GradientBackground from '@/components/GradientBackground';
 import SearchBar from '@/components/SearchBar';
 import EventCard from '@/components/EventCard';
+import FilterModal from '@/components/FilterModal';
 import Colors from '@/constants/Colors';
 import { fetchEvents } from '@/services/eventService';
 import { Event } from '@/models/event';
 import { formatDate } from '@/utils/dateUtils';
 
+const ITEMS_PER_PAGE = 10; // Nombre d'événements chargés par page
+
 export default function HomeScreen() {
-    const [events, setEvents] = useState<Event[]>([]); // État pour stocker les événements
-    const [loading, setLoading] = useState<boolean>(true); // État pour gérer le chargement
+    const [events, setEvents] = useState<Event[]>([]);
+    const [allEvents, setAllEvents] = useState<Event[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [loadingMore, setLoadingMore] = useState<boolean>(false);
+    const [page, setPage] = useState<number>(0);
+    const [hasMore, setHasMore] = useState<boolean>(true);
 
-    // Appel du service pour récupérer les événements
+    const [filtersVisible, setFiltersVisible] = useState<boolean>(false);
+    const [appliedFilters, setAppliedFilters] = useState<any>({});
+
+    // Chargement initial des événements
     useEffect(() => {
-        const loadEvents = async () => {
-            setLoading(true);
-            const data = await fetchEvents();
-            setEvents(data);
-            setLoading(false);
-        };
+        loadInitialEvents();
+    }, [appliedFilters]);
 
-        loadEvents().then(() => console.log('Events loaded'));
-    }, []);
+    const loadInitialEvents = async () => {
+        setLoading(true);
+        const data = await fetchEvents();
+        const filteredEvents = applyFilters(data, appliedFilters);
+        setAllEvents(filteredEvents);
+        setEvents(filteredEvents.slice(0, ITEMS_PER_PAGE));
+        setPage(1);
+        setHasMore(filteredEvents.length > ITEMS_PER_PAGE);
+        setLoading(false);
+    };
+
+    // Chargement des événements supplémentaires
+    const loadMoreEvents = () => {
+        if (loadingMore || !hasMore) return;
+
+        setLoadingMore(true);
+        const newEvents = allEvents.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE);
+
+        if (newEvents.length > 0) {
+            setEvents((prev) => [...prev, ...newEvents]);
+            setPage(page + 1);
+        } else {
+            setHasMore(false);
+        }
+        setLoadingMore(false);
+    };
+
+    // Fonction pour appliquer les filtres
+    const applyFilters = (data: Event[], filters: any) => {
+        let filteredData = [...data];
+        if (filters.date) {
+            filteredData = filteredData.sort((a, b) => (a.date > b.date ? 1 : -1));
+        }
+        if (filters.places_restantes) {
+            filteredData = filteredData.filter((e) => e.places_restantes > 0);
+        }
+        if (filters.capacite) {
+            filteredData = filteredData.sort((a, b) => b.capacite - a.capacite);
+        }
+        if (filters.lieu) {
+            filteredData = filteredData.sort((a, b) => a.lieu.localeCompare(b.lieu));
+        }
+        return filteredData;
+    };
 
     return (
-        <GradientBackground
-            startColor={Colors.secondary}
-            endColor={Colors.background}
-            locations={[0, 0.2]}
-        >
-                <SafeAreaView style={{ flex: 1 }}>
-                    <SearchBar placeholder="Rechercher..." />
+        <GradientBackground startColor={Colors.secondary} endColor={Colors.background} locations={[0, 0.2]}>
+            <SafeAreaView style={styles.container}>
+                {/* Barre de Recherche */}
+                <SearchBar placeholder="Rechercher..." />
 
-                    {loading ? (
-                        <ActivityIndicator size="large" color={Colors.secondary} style={styles.loader} />
-                    ) : events.length > 0 ? (
-                        <FlatList
-                            data={events}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => (
-                                <EventCard
-                                    image={'https://via.placeholder.com/400x200'}
-                                    price={`${item.capacite}€`}
-                                    title={item.titre}
-                                    date={formatDate(item.date)}
-                                    places={item.places_restantes}
-                                    location={item.lieu}
-                                    onPress={() => console.log(`Détails de l'événement : ${item.titre}`)}
-                                />
-                            )}
-                            contentContainerStyle={{
-                                paddingBottom: 20, // Ajoute un espace pour éviter le "bloquage"
-                                paddingTop: 10,
-                            }}
-                            keyboardShouldPersistTaps="handled" // Fixe le problème de TouchableWithoutFeedback
-                            showsVerticalScrollIndicator={true}
-                            style={{ flex: 1 }}
-                        />
-                    ) : (
-                        <Text style={styles.emptyText}>Aucun événement trouvé.</Text>
-                    )}
-                </SafeAreaView>
+                {/* Bouton de filtres avec badge */}
+                <TouchableOpacity style={styles.filterButton} onPress={() => setFiltersVisible(true)}>
+                    <Text style={styles.filterButtonText}>
+                        Filtres {Object.keys(appliedFilters).length > 0 && `(${Object.keys(appliedFilters).length})`}
+                    </Text>
+                </TouchableOpacity>
+
+                {/* Liste des événements */}
+                {loading ? (
+                    <ActivityIndicator size="large" color={Colors.secondary} style={styles.loader} />
+                ) : (
+                    <FlatList
+                        data={events}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({ item }) => (
+                            <EventCard
+                                image={'https://via.placeholder.com/400x200'}
+                                price={`${item.capacite}€`}
+                                title={item.titre}
+                                date={formatDate(item.date)}
+                                places={item.places_restantes}
+                                location={item.lieu}
+                                onPress={() => console.log(`Détails de l'événement : ${item.titre}`)}
+                            />
+                        )}
+                        onEndReached={loadMoreEvents}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={() =>
+                            loadingMore ? <ActivityIndicator size="small" color={Colors.secondary} /> : null
+                        }
+                        contentContainerStyle={styles.flatList}
+                        showsVerticalScrollIndicator={true}
+                    />
+                )}
+
+                {/* Modal de filtres */}
+                <FilterModal
+                    visible={filtersVisible}
+                    initialFilters={appliedFilters}
+                    onClose={() => setFiltersVisible(false)}
+                    onApply={(filters) => setAppliedFilters(filters)}
+                />
+            </SafeAreaView>
         </GradientBackground>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1, // Permet à FlatList de prendre tout l'espace disponible
+        flex: 1,
+    },
+    filterButton: {
+        backgroundColor: Colors.secondary,
+        padding: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginVertical: 10,
+        marginHorizontal: 20,
+    },
+    filterButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
     loader: {
         marginTop: 20,
     },
     flatList: {
-        paddingBottom: 20,
-    },
-    emptyText: {
-        color: Colors.textSecondary,
-        fontSize: 16,
-        textAlign: 'center',
-        marginTop: 20,
+        paddingBottom: 70,
     },
 });
