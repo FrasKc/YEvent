@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             if (session?.user) {
                 setUser(session.user);
-                console.log('Session utilisateur trouvée :', session.user);
+                console.log('Session utilisateur trouvée');
             } else {
                 setUser(null);
                 console.log('Aucune session utilisateur active.');
@@ -35,7 +35,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
             setUser(session?.user || null);
-            console.log('État auth modifié, session :', session);
             setLoading(false);
         });
 
