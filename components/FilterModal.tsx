@@ -14,7 +14,7 @@ interface FilterModalProps {
     visible: boolean;
     onClose: () => void;
     onApply: (filters: any) => void;
-    initialFilters: any; // Les filtres actuellement appliqués
+    initialFilters: any;
 }
 
 const FILTER_OPTIONS = [
@@ -25,22 +25,22 @@ const FILTER_OPTIONS = [
 ];
 
 export default function FilterModal({ visible, onClose, onApply, initialFilters }: FilterModalProps) {
-    const [selectedFilters, setSelectedFilters] = useState<any>({ ...initialFilters });
+    const [selectedFilters, setSelectedFilters] = useState<any>(initialFilters || {});
 
     const toggleFilter = (key: string) => {
-        setSelectedFilters((prev: { [x: string]: any; }) => ({
+        setSelectedFilters((prev: { [key: string]: any }) => ({
             ...prev,
-            [key]: !prev[key],
+            [key]: prev[key] === 'asc' ? 'desc' : 'asc', // Bascule entre ascendant et descendant
         }));
-    };
-
-    const resetFilters = () => {
-        setSelectedFilters({});
     };
 
     const applyFilters = () => {
         onApply(selectedFilters);
         onClose();
+    };
+
+    const resetFilters = () => {
+        setSelectedFilters({}); // Réinitialise tous les filtres
     };
 
     return (
@@ -65,12 +65,11 @@ export default function FilterModal({ visible, onClose, onApply, initialFilters 
                                         selectedFilters[item.key] && styles.filterTextSelected,
                                     ]}
                                 >
-                                    {item.label}
+                                    {item.label} ({selectedFilters[item.key] === 'asc' ? '↑' : '↓'})
                                 </Text>
                             </TouchableOpacity>
                         )}
                     />
-
                     {/* Boutons d'action */}
                     <View style={styles.actions}>
                         <TouchableOpacity onPress={resetFilters} style={styles.resetButton}>
@@ -135,6 +134,7 @@ const styles = StyleSheet.create({
     resetText: {
         color: Colors.secondary,
         fontSize: 16,
+        fontWeight: 'bold',
     },
     cancelButton: {
         padding: 10,

@@ -62,21 +62,35 @@ export default function HomeScreen() {
         setLoadingMore(false);
     };
 
-    // Fonction pour appliquer les filtres
+    // Fonction pour appliquer les filtres avec tri ascendant/descendant
     const applyFilters = (data: Event[], filters: any) => {
         let filteredData = [...data];
-        if (filters.date) {
-            filteredData = filteredData.sort((a, b) => (a.date > b.date ? 1 : -1));
-        }
-        if (filters.places_restantes) {
-            filteredData = filteredData.filter((e) => e.places_restantes > 0);
-        }
-        if (filters.capacite) {
-            filteredData = filteredData.sort((a, b) => b.capacite - a.capacite);
-        }
-        if (filters.lieu) {
-            filteredData = filteredData.sort((a, b) => a.lieu.localeCompare(b.lieu));
-        }
+
+        Object.keys(filters).forEach((key) => {
+            if (filters[key]) {
+                if (key === 'date') {
+                    filteredData = filteredData.sort((a, b) =>
+                        filters[key] === 'asc' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)
+                    );
+                }
+                if (key === 'places_restantes') {
+                    filteredData = filteredData.sort((a, b) =>
+                        filters[key] === 'asc' ? a.places_restantes - b.places_restantes : b.places_restantes - a.places_restantes
+                    );
+                }
+                if (key === 'capacite') {
+                    filteredData = filteredData.sort((a, b) =>
+                        filters[key] === 'asc' ? a.capacite - b.capacite : b.capacite - a.capacite
+                    );
+                }
+                if (key === 'lieu') {
+                    filteredData = filteredData.sort((a, b) =>
+                        filters[key] === 'asc' ? a.lieu.localeCompare(b.lieu) : b.lieu.localeCompare(a.lieu)
+                    );
+                }
+            }
+        });
+
         return filteredData;
     };
 
