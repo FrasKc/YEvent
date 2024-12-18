@@ -9,4 +9,5 @@ export type Event = {
     places_restantes: number; // int4
     est_complet: boolean; // Booléen
     coordonnees: { latitude: number; longitude: number }; // JSON
+    est_passe?: boolean; // Champ calculé dynamiquement
 };

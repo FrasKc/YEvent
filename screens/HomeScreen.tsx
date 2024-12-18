@@ -146,6 +146,7 @@ export default function HomeScreen({ navigation }: any) {
                                 date={formatDate(item.date)}
                                 places={item.places_restantes}
                                 location={item.lieu}
+                                isPassed={new Date(item.date) < new Date()}
                                 isComplete={item.places_restantes === 0}
                                 onPress={() => navigation.navigate('EventDetails', { eventId: item.id })}
                             />
