@@ -96,6 +96,7 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
                         <FlatList
                             data={reservations}
                             keyExtractor={(item) => item.id}
+                            contentContainerStyle={styles.flatList}
                             renderItem={({ item }) => (
                                 <EventCard
                                     image="https://via.placeholder.com/400"
@@ -104,6 +105,7 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
                                     date={formatDate(item.event.date)}
                                     places={item.nb_billets}
                                     location={item.event.lieu}
+                                    isComplete={item.places_restantes === 0}
                                     onPress={() => navigation.navigate('TicketDetails', { reservation: item })}
                                     isTicket={true}
                                 />
@@ -148,4 +150,7 @@ const styles = StyleSheet.create({
     reservationSection: { flex: 1, marginTop: 10 },
     sectionTitle: { fontSize: 18, fontWeight: '600', paddingHorizontal: 20, marginBottom: 10, color: Colors.text },
     noReservation: { fontSize: 16, color: Colors.textSecondary, textAlign: 'center', marginTop: 20 },
+    flatList: {
+        paddingBottom: 70,
+    },
 });

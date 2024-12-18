@@ -10,20 +10,12 @@ interface EventCardProps {
     date: string;
     places: number;
     location: string;
+    isComplete: boolean; // Ajout du booléen est_complet
     onPress: () => void;
     isTicket?: boolean; // Nouveau paramètre pour afficher la version billet
 }
 
-export default function EventCard({
-                                      image,
-                                      price,
-                                      title,
-                                      date,
-                                      places,
-                                      location,
-                                      onPress,
-                                      isTicket = false, // Par défaut, c'est une carte événement normale
-                                  }: EventCardProps) {
+export default function EventCard({ image, price, title, date, places, location, isComplete, isTicket = false, onPress }: EventCardProps) {
     return (
         <View style={styles.card}>
             <View style={styles.imageContainer}>
@@ -36,18 +28,29 @@ export default function EventCard({
             <View style={styles.infoContainer}>
                 <Text style={styles.title}>{title}</Text>
                 <Text style={styles.date}>
-                    {date} {!isTicket && <Text style={styles.places}>● {places} places restantes</Text>}
+                    {date} {isComplete ? (
+                    <Text style={styles.completeText}>● Événement complet</Text>
+                ) : (
+                    isTicket ? (
+                        <Text style={styles.places}>● {places} billets réservés</Text>
+                    ) : (
+                        <Text style={styles.places}>● {places} places restantes</Text>
+                    )
+                )}
                 </Text>
                 {/* Afficher le lieu uniquement pour les événements normaux */}
                 {<Text style={styles.location}>{location}</Text>}
                 {/* Trait de séparation */}
                 <View style={styles.separator} />
-                {/* Changer le texte et la couleur du bouton en fonction de l'option billet */}
-                <CustomButton
-                    title={isTicket ? "Voir la réservation" : "En savoir plus sur l'évènement"}
-                    onPress={onPress}
-                    color={isTicket ? Colors.primary : Colors.secondary }
-                />
+                {isComplete ? (
+                    <Text style={styles.completeMessage}>Événement complet</Text>
+                ) : (
+                    <CustomButton
+                        title={isTicket ? 'Voir ma réservation' : 'En savoir plus sur l\'événement'}
+                        onPress={onPress}
+                        color={isTicket ? Colors.primary : Colors.secondary}
+                    />
+                )}
             </View>
         </View>
     );
@@ -108,5 +111,15 @@ const styles = StyleSheet.create({
         height: 1,
         backgroundColor: Colors.variant,
         marginVertical: 5,
+    },
+    completeText: {
+        color: Colors.error, // Rouge pour signaler complet
+        fontWeight: 'bold',
+    },
+    completeMessage: {
+        textAlign: 'center',
+        color: Colors.error,
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

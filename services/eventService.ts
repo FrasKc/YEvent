@@ -29,7 +29,7 @@ export const getEventById = async (id: string) => {
     return { data };
 };
 
-// Mettre à jour les places restantes d'un événement
+// Mettre à jour les places restantes d'un événement et le booléen est_complet
 export const updateEventPlaces = async (
     eventId: string,
     placesChange: number
@@ -37,25 +37,32 @@ export const updateEventPlaces = async (
     // Étape 1 : Récupérer l'événement actuel
     const { data: event, error: fetchError } = await supabase
         .from('evenements')
-        .select('places_restantes')
+        .select('places_restantes, est_complet')
         .eq('id', eventId)
         .single();
 
     if (fetchError || !event) {
-        console.error('Erreur lors de la récupération des places restantes :', fetchError?.message);
+        console.error('Erreur lors de la récupération de l\'événement :', fetchError?.message);
         return { success: false, error: 'Événement introuvable' };
     }
 
     // Étape 2 : Calculer la nouvelle valeur
     const newPlacesRestantes = event.places_restantes + placesChange;
+
     if (newPlacesRestantes < 0) {
         return { success: false, error: 'Le nombre de places restantes ne peut pas être négatif.' };
     }
 
-    // Étape 3 : Mettre à jour les places restantes
+    // Déterminer si l'événement est complet
+    const estComplet = newPlacesRestantes === 0;
+
+    // Étape 3 : Mettre à jour les places restantes et le booléen est_complet
     const { error: updateError } = await supabase
         .from('evenements')
-        .update({ places_restantes: newPlacesRestantes })
+        .update({
+            places_restantes: newPlacesRestantes,
+            est_complet: estComplet
+        })
         .eq('id', eventId);
 
     if (updateError) {
