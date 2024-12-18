@@ -4,10 +4,8 @@ import { Event } from '@/models/event';
 // Fonction pour vérifier si la date est passée
 const checkIfDateIsPassed = (date: string): boolean => {
     const eventDate = new Date(date);
-    console.log('eventDate', date);
     // Date actuelle
     const currentDate = new Date();
-    console.log('currentDate', currentDate);
     return eventDate < currentDate; // Retourne true si la date est passée
 };
 

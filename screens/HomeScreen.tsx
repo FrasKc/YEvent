@@ -156,6 +156,11 @@ export default function HomeScreen({ navigation }: any) {
                         ListFooterComponent={() =>
                             loadingMore ? <ActivityIndicator size="small" color={Colors.secondary} /> : null
                         }
+                        ListEmptyComponent={() => (
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>Aucun événement disponible pour le moment.</Text>
+                            </View>
+                        )}
                         contentContainerStyle={styles.flatList}
                         showsVerticalScrollIndicator={true}
                     />
@@ -204,5 +209,17 @@ const styles = StyleSheet.create({
     },
     flatList: {
         paddingBottom: 70,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 20,
+    },
+    emptyText: {
+        fontSize: 16,
+        color: Colors.textSecondary,
+        textAlign: 'center',
+        paddingHorizontal: 20,
     },
 });
