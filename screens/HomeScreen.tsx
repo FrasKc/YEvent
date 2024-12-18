@@ -28,6 +28,7 @@ export default function HomeScreen({ navigation }: any) {
     const [page, setPage] = useState<number>(0);
     const [hasMore, setHasMore] = useState<boolean>(true);
 
+    const [searchQuery, setSearchQuery] = useState<string>('');
     const [filtersVisible, setFiltersVisible] = useState<boolean>(false);
     const [appliedFilters, setAppliedFilters] = useState<any>({});
     const [user, setUser] = useState<{ nom: string } | null>(null);
@@ -46,6 +47,22 @@ export default function HomeScreen({ navigation }: any) {
         setPage(1);
         setHasMore(filteredEvents.length > ITEMS_PER_PAGE);
         setLoading(false);
+    };
+
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+        if (query.trim() === '') {
+            setEvents(allEvents.slice(0, ITEMS_PER_PAGE)); // Reset si la barre est vide
+            setPage(1);
+            setHasMore(allEvents.length > ITEMS_PER_PAGE);
+        } else {
+            const filteredEvents = allEvents.filter((event) =>
+                event.titre.toLowerCase().includes(query.toLowerCase()) ||
+                event.lieu.toLowerCase().includes(query.toLowerCase())
+            );
+            setEvents(filteredEvents);
+            setHasMore(false); // Pas de pagination pour une recherche filtrée
+        }
     };
 
     // Chargement des événements supplémentaires
@@ -122,7 +139,7 @@ export default function HomeScreen({ navigation }: any) {
 
 
                 {/* Barre de Recherche */}
-                <SearchBar placeholder="Rechercher..." />
+                <SearchBar placeholder="Rechercher..." onChangeText={handleSearch} />
 
                 {/* Bouton de filtres avec badge */}
                 <TouchableOpacity style={styles.filterButton} onPress={() => setFiltersVisible(true)}>
