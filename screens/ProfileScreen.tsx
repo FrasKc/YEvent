@@ -7,7 +7,10 @@ import GradientBackground from "@/components/GradientBackground";
 import { signOut } from '@/services/authService';
 import { getCurrentUser } from '@/services/userService';
 import { getUserReservations } from '@/services/reservationService';
+import { getEventById } from '@/services/eventService';
 import ConfirmationMessage from '@/components/ConfirmationMessage';
+import EventCard from "@/components/EventCard";
+import {formatDate} from "@/utils/dateUtils";
 
 export default function ProfileScreen({ navigation }: { navigation: any }) {
     const [user, setUser] = useState<any>(null);
@@ -15,27 +18,38 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
     const [loading, setLoading] = useState<boolean>(true);
     const [showConfirmLogout, setShowConfirmLogout] = useState<boolean>(false);
 
-    // Récupération des informations de l'utilisateur
+    // Récupération des informations de l'utilisateur et des réservations
     useEffect(() => {
         const fetchUserData = async () => {
-            const { data, error } = await getCurrentUser();
-            if (error) {
-                console.error('Erreur lors de la récupération des informations utilisateur :', error.message);
-                Alert.alert('Erreur', 'Impossible de récupérer les informations de votre profil.');
-            } else {
-                setUser(data);
-
-                // Récupération des réservations
-                const { data: reservationsData, error: reservationsError } = await getUserReservations(data.id);
-                if (reservationsError) {
-                    console.error('Erreur lors de la récupération des réservations :', reservationsError.message);
-                    Alert.alert('Erreur', 'Impossible de récupérer vos réservations.');
-                } else if (reservationsData && reservationsData.length > 0) {
-                    setReservations(reservationsData);
-                } else {
-                    setReservations([]);
-                }
+            const { data: userData, error: userError } = await getCurrentUser();
+            if (userError) {
+                Alert.alert('Erreur', 'Impossible de récupérer vos informations.');
+                return;
             }
+            setUser(userData);
+
+            const { data: reservationsData, error: reservationsError } = await getUserReservations(userData.id);
+            if (reservationsError) {
+                Alert.alert('Erreur', 'Impossible de récupérer vos réservations.');
+                return;
+            }
+
+            // Enrichir chaque réservation avec les détails de l'événement
+            const enrichedReservations = await Promise.all(
+                reservationsData!.map(async (reservation: any) => {
+                    const { data: eventData, error: eventError } = await getEventById(reservation.evenement_id);
+                    if (eventError) {
+                        console.error(`Erreur pour l'événement ${reservation.evenement_id}:`, eventError.message);
+                        return null;
+                    }
+                    return {
+                        ...reservation,
+                        event: eventData,
+                    };
+                })
+            );
+
+            setReservations(enrichedReservations.filter(Boolean)); // Filtrer les erreurs
             setLoading(false);
         };
 
@@ -46,12 +60,9 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
     const handleSignOut = async () => {
         const { error } = await signOut();
         if (error) {
-            Alert.alert('Erreur', 'Impossible de se déconnecter. Réessayez.');
+            Alert.alert('Erreur', 'Impossible de se déconnecter.');
         } else {
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-            });
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         }
     };
 
@@ -73,10 +84,7 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
                     </View>
                     <Text style={styles.name}>{user?.nom || 'Nom inconnu'}</Text>
                     <Text style={styles.email}>{user?.email || 'Email inconnu'}</Text>
-                    <TouchableOpacity
-                        style={styles.settingsButton}
-                        onPress={() => setShowConfirmLogout(true)}
-                    >
+                    <TouchableOpacity style={styles.settingsButton} onPress={() => setShowConfirmLogout(true)}>
                         <Icon name="log-out-outline" size={24} color="#fff" />
                     </TouchableOpacity>
                 </View>
@@ -89,11 +97,16 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
                             data={reservations}
                             keyExtractor={(item) => item.id}
                             renderItem={({ item }) => (
-                                <View style={styles.reservationCard}>
-                                    <Text style={styles.eventTitle}>Événement ID : {item.evenement_id}</Text>
-                                    <Text style={styles.details}>Nombre de billets : {item.nb_billets}</Text>
-                                    <Text style={styles.details}>Numéro de confirmation : {item.numero_conf}</Text>
-                                </View>
+                                <EventCard
+                                    image="https://via.placeholder.com/400"
+                                    price={`${item.event.prix*item.nb_billets+'€' || 'Gratuit'}`}
+                                    title={item.event.titre}
+                                    date={formatDate(item.event.date)}
+                                    places={item.nb_billets}
+                                    location={item.event.lieu}
+                                    onPress={() => navigation.navigate('TicketDetails', { reservation: item })}
+                                    isTicket={true}
+                                />
                             )}
                         />
                     ) : (
@@ -117,78 +130,22 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.background,
-    },
-    header: {
-        alignItems: 'center',
-        paddingTop: 50,
-        paddingBottom: 20,
-    },
+    container: { flex: 1 },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    header: { alignItems: 'center', paddingTop: 50, paddingBottom: 20 },
     profilePictureContainer: {
         backgroundColor: Colors.card,
         width: 160,
         height: 160,
         borderRadius: 90,
-        elevation: 5,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 10,
     },
-    name: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: Colors.text,
-        marginTop: 10,
-    },
-    email: {
-        marginTop: 5,
-        fontSize: 16,
-        color: Colors.textSecondary,
-    },
-    settingsButton: {
-        position: 'absolute',
-        top: 20,
-        right: 20,
-    },
-    reservationSection: {
-        flex: 1,
-        paddingHorizontal: 20,
-        marginTop: 10,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        marginBottom: 10,
-        color: Colors.text,
-    },
-    reservationCard: {
-        backgroundColor: Colors.card,
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 10,
-        elevation: 3,
-    },
-    eventTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: Colors.primary,
-    },
-    details: {
-        fontSize: 14,
-        color: Colors.textSecondary,
-        marginTop: 5,
-    },
-    noReservation: {
-        fontSize: 16,
-        color: Colors.textSecondary,
-        textAlign: 'center',
-        marginTop: 20,
-    },
+    name: { fontSize: 22, fontWeight: 'bold', color: Colors.text, marginTop: 10 },
+    email: { marginTop: 5, fontSize: 16, color: Colors.textSecondary },
+    settingsButton: { position: 'absolute', top: 20, right: 20 },
+    reservationSection: { flex: 1, marginTop: 10 },
+    sectionTitle: { fontSize: 18, fontWeight: '600', paddingHorizontal: 20, marginBottom: 10, color: Colors.text },
+    noReservation: { fontSize: 16, color: Colors.textSecondary, textAlign: 'center', marginTop: 20 },
 });

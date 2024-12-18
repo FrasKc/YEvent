@@ -11,9 +11,19 @@ interface EventCardProps {
     places: number;
     location: string;
     onPress: () => void;
+    isTicket?: boolean; // Nouveau paramètre pour afficher la version billet
 }
 
-export default function EventCard({ image, price, title, date, places, location, onPress }: EventCardProps) {
+export default function EventCard({
+                                      image,
+                                      price,
+                                      title,
+                                      date,
+                                      places,
+                                      location,
+                                      onPress,
+                                      isTicket = false, // Par défaut, c'est une carte événement normale
+                                  }: EventCardProps) {
     return (
         <View style={styles.card}>
             <View style={styles.imageContainer}>
@@ -26,12 +36,18 @@ export default function EventCard({ image, price, title, date, places, location,
             <View style={styles.infoContainer}>
                 <Text style={styles.title}>{title}</Text>
                 <Text style={styles.date}>
-                    {date} <Text style={styles.places}>● {places} places restantes</Text>
+                    {date} {!isTicket && <Text style={styles.places}>● {places} places restantes</Text>}
                 </Text>
-                <Text style={styles.location}>{location}</Text>
+                {/* Afficher le lieu uniquement pour les événements normaux */}
+                {<Text style={styles.location}>{location}</Text>}
                 {/* Trait de séparation */}
                 <View style={styles.separator} />
-                <CustomButton title="En savoir plus sur l'évènement" onPress={onPress} />
+                {/* Changer le texte et la couleur du bouton en fonction de l'option billet */}
+                <CustomButton
+                    title={isTicket ? "Voir la réservation" : "En savoir plus sur l'évènement"}
+                    onPress={onPress}
+                    color={isTicket ? Colors.primary : Colors.secondary }
+                />
             </View>
         </View>
     );
@@ -90,7 +106,7 @@ const styles = StyleSheet.create({
     },
     separator: {
         height: 1,
-        backgroundColor: Colors.variant, // Utilisation de la couleur de bordure
-        marginVertical: 5, // Espacement au-dessus et en dessous du trait
+        backgroundColor: Colors.variant,
+        marginVertical: 5,
     },
 });
