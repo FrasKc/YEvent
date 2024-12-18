@@ -19,7 +19,7 @@ export default function TicketDetailsScreen({ route, navigation }: any) {
         const fetchBillets = async () => {
             const { data, error } = await getBilletsByReservationId(reservation.id);
             if (error) {
-                Alert.alert('Erreur', 'Impossible de charger les billets.');
+                Alert.alert("Erreur", "Impossible de charger les billets.");
             } else {
                 setBillets(data || []);
             }
@@ -69,7 +69,9 @@ export default function TicketDetailsScreen({ route, navigation }: any) {
                             <View style={styles.ticketCard}>
                                 <Text style={styles.ticketTitle}>Billet {index + 1}</Text>
                                 <Text style={styles.ticketNumber}>{`Numéro : ${item.numero_billet}`}</Text>
-                                <QRCode value={item.numero_billet} size={150} />
+                                <View style={styles.qrCodeContainer}>
+                                    <QRCode value={item.numero_billet} size={150} />
+                                </View>
                             </View>
                         )}
                         snapToInterval={screenWidth * 0.8 + 20} // Taille de la carte + marge
@@ -135,7 +137,6 @@ const styles = StyleSheet.create({
     },
     ticketList: {
         marginTop: 20,
-
     },
     ticketCard: {
         width: screenWidth * 0.8, // Largeur de la carte (80% de l'écran)
@@ -164,5 +165,10 @@ const styles = StyleSheet.create({
         color: Colors.text,
         marginBottom: 10,
         marginLeft: 20,
-    }
+    },
+    qrCodeContainer: {
+        padding: 20, // Ajout de padding autour du QRCode
+        backgroundColor: Colors.text, // Optionnel, pour contraster
+        borderRadius: 10,
+    },
 });
