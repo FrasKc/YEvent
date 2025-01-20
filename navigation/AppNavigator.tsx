@@ -12,6 +12,7 @@ import MapsScreen from '@/screens/MapScreen';
 import TicketDetailsScreen from "@/screens/TicketDetailsScreen";
 import QRCode from "react-native-qrcode-svg";
 import QRCodeScannerScreen from "@/screens/QRScannerScreen";
+import QRResultScreen from "@/screens/QRResultScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -61,7 +62,13 @@ export default function AppNavigator() {
             <Stack.Screen
                 name="QRCodeScanner"
                 component={QRCodeScannerScreen}
-                options={{ headerShown: false }} />
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="QRResultScreen"
+                component={QRResultScreen}
+                options={{ headerShown: false }}
+            />
         </Stack.Navigator>
     );
 }

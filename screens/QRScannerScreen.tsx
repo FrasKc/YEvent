@@ -1,6 +1,6 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function QRScannerScreen({ navigation }: { navigation: any }) {
     const [facing, setFacing] = useState<CameraType>('back');
@@ -8,12 +8,10 @@ export default function QRScannerScreen({ navigation }: { navigation: any }) {
     const [scanned, setScanned] = useState(false);
 
     if (!permission) {
-        // Camera permissions are still loading.
         return <View />;
     }
 
     if (!permission.granted) {
-        // Camera permissions are not granted yet.
         return (
             <View style={styles.container}>
                 <Text style={styles.message}>Nous avons besoin de votre permission pour accéder à la caméra</Text>
@@ -27,9 +25,8 @@ export default function QRScannerScreen({ navigation }: { navigation: any }) {
     const handleBarCodeScanned = ({ data }: { data: string }) => {
         if (!scanned) {
             setScanned(true);
-            Alert.alert('QR Code Scanné', `Données : ${data}`, [
-                { text: 'OK', onPress: () => setScanned(false) },
-            ]);
+            navigation.navigate('QRResultScreen', { qrData: data }); // Redirection vers la page de résultat
+            setScanned(false);
         }
     };
 
