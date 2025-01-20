@@ -157,7 +157,7 @@ export default function HomeScreen({ navigation }: any) {
                         keyExtractor={(item) => item.id}
                         renderItem={({ item }) => (
                             <EventCard
-                                image={'https://via.placeholder.com/400x200'}
+                                image={'https://picsum.photos/600/400'}
                                 price={item.prix ? `${item.prix}€` : 'Gratuit'}
                                 title={item.titre}
                                 date={formatDate(item.date)}

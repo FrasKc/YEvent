@@ -84,9 +84,14 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
                     </View>
                     <Text style={styles.name}>{user?.nom || 'Nom inconnu'}</Text>
                     <Text style={styles.email}>{user?.email || 'Email inconnu'}</Text>
-                    <TouchableOpacity style={styles.settingsButton} onPress={() => setShowConfirmLogout(true)}>
-                        <Icon name="log-out-outline" size={24} color="#fff" />
-                    </TouchableOpacity>
+                    <View style={styles.headerButtons}>
+                        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('QRCodeScanner')}>
+                            <Icon name="qr-code-outline" size={24} color="#fff" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.iconButton} onPress={() => setShowConfirmLogout(true)}>
+                            <Icon name="log-out-outline" size={24} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Liste des réservations */}
@@ -99,7 +104,7 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
                             contentContainerStyle={styles.flatList}
                             renderItem={({ item }) => (
                                 <EventCard
-                                    image="https://via.placeholder.com/400"
+                                    image="https://picsum.photos/600"
                                     price={`${item.event.prix*item.nb_billets+'€' || 'Gratuit'}`}
                                     title={item.event.titre}
                                     date={formatDate(item.event.date)}
@@ -153,5 +158,14 @@ const styles = StyleSheet.create({
     noReservation: { fontSize: 16, color: Colors.textSecondary, textAlign: 'center', marginTop: 20 },
     flatList: {
         paddingBottom: 70,
+    },
+    headerButtons: {
+        flexDirection: 'row',
+        position: 'absolute',
+        top: 20,
+        right: 20,
+    },
+    iconButton: {
+        marginLeft: 10,
     },
 });

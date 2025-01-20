@@ -31,7 +31,7 @@ export default function EventCard({
     return (
         <View style={[styles.card, isPassed && styles.passedCard]}>
             <View style={styles.imageContainer}>
-                <Image source={{ uri: image }} style={styles.image} />
+                <Image source={{ uri:image }} style={styles.image} />
                 {/* Prix flottant */}
                 <View style={styles.priceTag}>
                     <Text style={styles.price}>{price}</Text>

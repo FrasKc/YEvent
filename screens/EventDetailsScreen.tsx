@@ -89,7 +89,7 @@ export default function EventDetailsScreen({ route, navigation }: any) {
                     <View style={styles.card}>
                         {/* Image et titre */}
                         <View style={styles.header}>
-                            <Image source={{ uri: 'https://via.placeholder.com/400x200' }} style={styles.image} />
+                            <Image source={{ uri: 'https://picsum.photos/600/400' }} style={styles.image} />
                             <View style={styles.titleContainer}>
                                 <Text style={styles.title}>{event.titre}</Text>
                                 <Text style={styles.location}>{event.lieu}</Text>
