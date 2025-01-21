@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import Colors from '@/constants/Colors';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -16,6 +25,7 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
     const [user, setUser] = useState<any>(null);
     const [reservations, setReservations] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [refreshing, setRefreshing] = useState<boolean>(false); // État pour le pull-to-refresh
     const [showConfirmLogout, setShowConfirmLogout] = useState<boolean>(false);
 
     // Fonction pour récupérer les données de l'utilisateur et des réservations
@@ -24,6 +34,7 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
         const { data: userData, error: userError } = await getCurrentUser();
         if (userError) {
             Alert.alert('Erreur', 'Impossible de récupérer vos informations.');
+            setLoading(false);
             return;
         }
         setUser(userData);
@@ -31,6 +42,7 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
         const { data: reservationsData, error: reservationsError } = await getUserReservations(userData.id);
         if (reservationsError) {
             Alert.alert('Erreur', 'Impossible de récupérer vos réservations.');
+            setLoading(false);
             return;
         }
 
@@ -51,6 +63,7 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
 
         setReservations(enrichedReservations.filter(Boolean)); // Filtrer les erreurs
         setLoading(false); // Désactive le chargement
+        setRefreshing(false); // Désactive le rafraîchissement
     };
 
     // Exécute la récupération des données à l'initialisation
@@ -110,6 +123,11 @@ export default function ProfileScreen({ navigation }: { navigation: any }) {
                             data={reservations}
                             keyExtractor={(item) => item.id}
                             contentContainerStyle={styles.flatList}
+                            onRefresh={() => {
+                                setRefreshing(true);
+                                fetchUserData();
+                            }} // Fonction de rafraîchissement
+                            refreshing={refreshing} // État de rafraîchissement
                             renderItem={({ item }) => (
                                 <EventCard
                                     image="https://picsum.photos/600"
